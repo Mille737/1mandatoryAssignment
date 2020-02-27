@@ -4,41 +4,34 @@ import java.net.*;
 
 public class Server {
 
-    //static Vector<ClientHandler> ar = new Vector<>();
-    private ArrayList<SConnection> connections = new ArrayList<>();
-
-    //Serverens port nummer
+    //Server port number
     private static int PORT = 3030;
-
-    static String name;
+    //fields
+    private static String name;
     private boolean stop = false;
     private boolean valid = false;
-
-    static private DataInputStream dis;
-    static private DataOutputStream dos;
-
-    public void setStop(boolean stop) {
+    private DataInputStream dis;
+    private DataOutputStream dos;
+    //setters
+    private void setStop(boolean stop) {
         this.stop = stop;
     }
-
-    public static String getName() {
-        return name;
-    }
-
-    public static void setName(String name) {
+    private void setName(String name) {
         Server.name = name;
     }
-
-    public List<SConnection> getConnections() {
+    //lists
+    private ArrayList<ServerConnection> connections = new ArrayList<>();
+    public List<ServerConnection> getConnections() {
         return connections;
     }
+
 
     public void serverM() throws IOException{
 
         //Laver en ny socket som venter på Clienter på PORT
-        ServerSocket ss = new ServerSocket(PORT);
+        ServerSocket serverSocket = new ServerSocket(PORT);
 
-        Socket s;
+        Socket socket;
 
         System.out.println("**** Starter server på PORT: "+ PORT + " ****\n");
         System.out.println("Venter for klienter til at connect.....\n");
@@ -47,14 +40,14 @@ public class Server {
         while (true) {
 
             //accepterer clienten
-            s = ss.accept();
+            socket = serverSocket.accept();
 
             //DataInd- og OutputStream bliver brugt til at sende data fra klient til serveren og omvendt.
-            dis = new DataInputStream(s.getInputStream());
-            dos = new DataOutputStream(s.getOutputStream());
+            dis = new DataInputStream(socket.getInputStream());
+            dos = new DataOutputStream(socket.getOutputStream());
 
             //Serveren skriver til klienten og beder om et brugernavn
-            dos.writeUTF("Type Join: and then your user name: ");
+            dos.writeUTF("Type Join: and then your username: ");
             //flush ryder OutputStream så den er tom
             dos.flush();
 
@@ -77,13 +70,13 @@ public class Server {
 
                         if (valid){
 
-                        SConnection sConnection = new SConnection(s, this, name);
+                        ServerConnection serverConnection = new ServerConnection(socket, this, name);
 
                         //Starter tråden
-                        sConnection.start();
+                        serverConnection.start();
 
                         //vores connection bliver her tilføjet til vores 'ArrayListe'
-                        connections.add(sConnection);
+                        connections.add(serverConnection);
                             System.out.println(name + " har joinet serveren\n");
                             break;
 
@@ -158,64 +151,3 @@ public class Server {
         }
     }
 }
-
-/*class ClientHandler implements Runnable{
-
-
-    Scanner scn = new Scanner(System.in);
-    private String name;
-    final DataInputStream dis;
-    final DataOutputStream dos;
-    Socket s;
-    boolean isloggedin;
-
-    public ClientHandler(Socket s, String name, DataInputStream dis, DataOutputStream dos) {
-
-        this.dis = dis;
-        this.dos = dos;
-        this.name = name;
-        this.s = s;
-        this.isloggedin = true;
-    }
-
-    @Override
-    public void run() {
-
-        String received;
-        while (true){
-
-            try {
-                received = dis.readUTF();
-
-                System.out.println(received);
-
-                if (received.equals("Logout")){
-                    this.isloggedin=false;
-                    this.s.close();
-                    break;
-                }
-
-                StringTokenizer st = new StringTokenizer(received, "#");
-                String MsgToSend = st.nextToken();
-                String recipient = st.nextToken();
-
-                for (ClientHandler mc : Server.ar){
-                    if (mc.name.equals(recipient) && mc.isloggedin == true){
-                        mc.dos.writeUTF(this.name + " : " + MsgToSend);
-                        break;
-                    }
-                }
-
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-        }
-        try {
-            this.dis.close();
-            this.dos.close();
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-
-    }
-}*/
