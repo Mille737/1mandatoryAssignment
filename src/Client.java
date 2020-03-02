@@ -5,22 +5,22 @@ import java.util.Scanner;
 
 public class Client {
 
-    //Serverport som serveren kører på.
+    //Serverport same as the server
     final static int serverPort = 3030;
 
-    public static void main(String[] args) throws UnknownHostException, IOException {
+    public static void main(String[] args) throws IOException {
 
-        Scanner scn = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
 
-        //Finder vores localhost ip
+        //Finds the local ip address
         InetAddress ip = InetAddress.getByName("localhost");
 
-        //Vi laver connection til server
-        Socket s = new Socket(ip, serverPort);
+        //connects to server
+        Socket socket = new Socket(ip, serverPort);
 
-        //Data in- og outputStream oprettes og tager en socket til at "lytte" efter trafik/input
-        DataInputStream dis = new DataInputStream(s.getInputStream());
-        DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+        //input and output streams use the socket to listen for data
+        DataInputStream dis = new DataInputStream(socket.getInputStream());
+        DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
         //The syntax of an anonymous class expression is like the invocation of a constructor,
         // except that there is a class definition contained in a block of code.
@@ -33,12 +33,12 @@ public class Client {
 
                 while (true){
 
-                    //skriv besked
-                    String msg = scn.nextLine();
+                    //message = next input
+                    String message = scanner.nextLine();
 
                     try {
-                        //send skrevet besked
-                        dos.writeUTF(msg);
+                        //sends message to server
+                        dos.writeUTF(message);
 
                     }catch (IOException e){
                         e.printStackTrace();
@@ -47,7 +47,7 @@ public class Client {
             }
         });
 
-        //læs modtaget besked tråd
+        //creates new thread for message to be read
         Thread readMessage = new Thread(new Runnable() {
 
             @Override
@@ -56,18 +56,16 @@ public class Client {
                 while (true){
 
                     try {
-                        //Læs den modtaget besked fra en klient
-                        String msg = dis.readUTF();
-                        System.out.println(msg);
+                        String inputMessage = dis.readUTF();
+                        System.out.println(inputMessage);
 
-                    }catch (IOException e){
+                    } catch (IOException e){
                         e.printStackTrace();
                     }
                 }
             }
         });
-
-        //Starter tråde
+        //Starts threads
         sendMessage.start();
         readMessage.start();
     }
